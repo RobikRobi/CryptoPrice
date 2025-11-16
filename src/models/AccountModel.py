@@ -1,5 +1,7 @@
-from sqlalchemy import ForeignKey
+from sqlalchemy import Numeric, Column, ForeignKey, String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.enum.CurrencyEnum import CurrencyType
+from decimal import Decimal
 from typing import TYPE_CHECKING
 from src.db import Base
 
@@ -8,11 +10,11 @@ if TYPE_CHECKING:
 
 # модель таблицы для сохранения данных о счетах
 class Account(Base):
-    __tablename__ = 'accounts'
+    __tablename__ = "accounts"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    currency: Mapped[CurrencyType] = mapped_column(nullable=False, default=CurrencyType.USD)
+    available: Mapped[Decimal] = mapped_column(Numeric(28, 8), default=0)
+    locked: Mapped[Decimal] = mapped_column(Numeric(28, 8), default=0)
 
-    id: Mapped[int] = mapped_column (primary_key=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
-    currency: Mapped[str] = mapped_column(nullable=False)
-    balance: Mapped[float] = mapped_column(default=0.0)
-
-    owner: Mapped["User"] = relationship(back_populates="users")
+    owner = relationship("User", back_populates="accounts")

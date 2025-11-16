@@ -28,7 +28,7 @@ class Config(BaseModel):
 
 class CryptoData:
 
-    COINS = ["bitcoin", "ethereum", "dogecoin"]
+    COINS = ["bitcoin", "ethereum", "tether", "ripple", "binancecoin"]
     VS_CURRENCY = "usd"
     CR_URL = "https://api.coingecko.com/api/v3/simple/price"
 

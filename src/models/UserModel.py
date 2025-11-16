@@ -15,4 +15,4 @@ class User(Base):
     password: Mapped[bytes]
     dob: Mapped[datetime.date]
     
-    users: Mapped[list["Account"]] = relationship(uselist=True, back_populates="owner")
+    accounts: Mapped[list["Account"]] = relationship(back_populates="owner")
