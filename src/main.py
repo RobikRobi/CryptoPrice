@@ -1,9 +1,14 @@
 from fastapi import FastAPI
 from binascii import Error
 from src.db import engine, Base
+from src.auth.auth_router import app as auth_app
+from src.client.client_router import app as client_app
 
 
 app = FastAPI()
+
+app.include_router(auth_app)
+app.include_router(client_app)
 
 
 @app.get("/init")

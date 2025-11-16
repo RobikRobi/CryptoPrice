@@ -26,7 +26,7 @@ class Config(BaseModel):
     env_data:EnvData = EnvData()
     auth_data:AuthData = AuthData()
 
-class CryptoData(BaseModel):
+class CryptoData:
 
     COINS = ["bitcoin", "ethereum", "dogecoin"]
     VS_CURRENCY = "usd"
