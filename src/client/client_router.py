@@ -1,15 +1,14 @@
+import httpx
+import asyncio
 import requests as r
 from src.config import CryptoData
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
-from sqlalchemy.ext.asyncio import AsyncSession
+from src.redis_connect import redis_client
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from src.client.WebsocetConnect import ConnectionManager
-from src.db import get_session
 from src.client.crypto_price_watcher import crypto_price_watcher
-from src.get_current_user import get_current_user
-from src.models.UserModel import User
-from src.models.AccountModel import Account
-from src.client.client_shema import AccountCreate
+
+
 
 
 
@@ -36,3 +35,24 @@ async def websocket_endpoint(websocket: WebSocket):
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+
+async def crypto_price_watcher(interval: int = 5):
+    while True:
+        params = {
+            "ids": ",".join(CryptoData.COINS),
+            "vs_currencies": CryptoData.VS_CURRENCY,
+            "include_24hr_change": "true"
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(CryptoData.CR_URL, params=params)
+            data = response.json()
+
+        # --- сохраняем цены в redis ---
+        for coin, values in data.items():
+            price = values["usd"]
+            await redis_client.set(f"prices:{coin.upper()}", price)
+
+        yield data
+        await asyncio.sleep(interval)

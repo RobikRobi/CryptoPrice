@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from src.db import get_session
-from src.enum.CurrencyEnum import CurrencyType
 from decimal import Decimal
 from src.get_current_user import get_current_user
 from src.models.AccountModel import Account
@@ -27,7 +26,7 @@ async def create_account(account_create: AccountCreate, current_user: User = Dep
 async def list_accounts(session: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user)):
     stmt = select(Account).where(Account.owner_id == current_user.id)
     result = await session.execute(stmt)
-    accounts = result.scalars.all()
+    accounts = result.scalars().all()
     return accounts
 
 # получения данных о балансе определённого счёта
@@ -52,7 +51,7 @@ async def deposit_to_account(account_id: int, account_update: AccountUpdate,
     session.commit()
     session.refresh(account)
 
-    return {"message": f"Deposit of {account_update.balance} to account {account_id}"}
+    return {"message": f"Deposit of {account_update.available} to account {account_id}"}
 
 # Списание средств со счёта
 @app.put("/{account_id}/withdraw")

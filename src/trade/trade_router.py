@@ -7,14 +7,12 @@ from src.get_current_user import get_current_user
 from src.db import get_session
 from src.models.AccountModel import Account
 from src.models.UserModel import User
-from src.redis_connect import redis_client  # твой клиент Redis
+from src.redis_connect import redis_client
 from src.enum.CurrencyEnum import CurrencyType
-
 
 app = APIRouter(prefix="/trade", tags=["Trading"])
 
 
-# --- Покупка криптовалюты ---
 @app.post("/buy")
 async def buy_crypto(
     symbol: CurrencyType,
@@ -22,14 +20,15 @@ async def buy_crypto(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    # 1. Получаем цену из Redis
+
+    # --- Цена из Redis ---
     price = await redis_client.get(f"prices:{symbol.value}")
     if not price:
-        raise HTTPException(400, "Price not available")
+        raise HTTPException(400, f"Price for {symbol.value} is not available")
 
     price = Decimal(price)
 
-    # 2. Проверяем есть ли USD счёт
+    # --- USD-счёт ---
     usd_acc = await session.scalar(
         select(Account).filter(
             Account.owner_id == current_user.id,
@@ -42,10 +41,8 @@ async def buy_crypto(
     if usd_acc.available < amount_usd:
         raise HTTPException(400, "Not enough USD balance")
 
-    # 3. Рассчитываем сколько крипты купить
     crypto_amount = amount_usd / price
 
-    # 4. Получаем крипто-счёт (BTC, ETH...)
     crypto_acc = await session.scalar(
         select(Account).filter(
             Account.owner_id == current_user.id,
@@ -62,7 +59,6 @@ async def buy_crypto(
         session.add(crypto_acc)
         await session.flush()
 
-    # 5. Изменяем балансы
     usd_acc.available -= amount_usd
     crypto_acc.available += crypto_amount
 
@@ -70,7 +66,7 @@ async def buy_crypto(
 
     return {
         "message": "Crypto purchased",
-        "symbol": symbol,
+        "symbol": symbol.value,
         "crypto_amount": float(crypto_amount),
         "spent_usd": float(amount_usd),
         "price": float(price)

@@ -1,10 +1,10 @@
 from pydantic import BaseModel, Field
-from src.enum import CurrencyEnum
+from src.enum.CurrencyEnum import CurrencyType
 
 
 
 class AccountCreate(BaseModel):
-    currency: CurrencyEnum
+    currency: CurrencyType
     available: float = Field(ge=0.0)
 
 # схема для пополнения баланса счёта
