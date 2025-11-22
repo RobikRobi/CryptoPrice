@@ -37,6 +37,14 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
+COINGECKO_TO_ENUM = {
+    "bitcoin": "BTC",
+    "ethereum": "ETH",
+    "tether": "USDT",
+    "ripple": "XRP",
+    "binancecoin": "BNB",
+}
+
 async def crypto_price_watcher(interval: int = 5):
     while True:
         params = {
@@ -49,10 +57,17 @@ async def crypto_price_watcher(interval: int = 5):
             response = await client.get(CryptoData.CR_URL, params=params)
             data = response.json()
 
-        # --- сохраняем цены в redis ---
-        for coin, values in data.items():
+        for coin_id, values in data.items():
+            symbol = COINGECKO_TO_ENUM.get(coin_id)
+            if not symbol:
+                continue  # пропускаем неизвестные монеты
+
             price = values["usd"]
-            await redis_client.set(f"prices:{coin.upper()}", price)
+
+            await redis_client.set(f"prices:{symbol}", price)
+
+        # USD фиксируем вручную
+        await redis_client.set("prices:USD", 1)
 
         yield data
         await asyncio.sleep(interval)
