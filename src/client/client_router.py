@@ -3,7 +3,7 @@ import asyncio
 import requests as r
 from src.config import CryptoData
 from src.redis_connect import redis_client
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket
 
 from src.client.WebsocetConnect import ConnectionManager
 from src.client.crypto_price_watcher import crypto_price_watcher
@@ -28,13 +28,13 @@ req = r.get(CryptoData.CR_URL, params=params, timeout=10)
 @app.websocket("/ws/crypto")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
-
     try:
         async for data in crypto_price_watcher(interval=5):
+            print(data)
             await manager.broadcast(data)
-
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
+    except: pass
+    manager.disconnect(websocket)
+        
 
 
 COINGECKO_TO_ENUM = {

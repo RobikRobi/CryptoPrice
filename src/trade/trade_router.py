@@ -12,7 +12,7 @@ from src.enum.CurrencyEnum import CurrencyType
 
 app = APIRouter(prefix="/trade", tags=["Trading"])
 
-
+# --- Покупка криптовалюты ---
 @app.post("/buy")
 async def buy_crypto(
     symbol: CurrencyType,
