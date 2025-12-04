@@ -5,7 +5,7 @@ from src.config import CryptoData
 from src.redis_connect import redis_client
 from fastapi import APIRouter, WebSocket
 
-from src.client.WebsocetConnect import ConnectionManager
+from src.client.WebsocketConnect import ConnectionManager
 from src.client.crypto_price_watcher import crypto_price_watcher
 
 
